@@ -25,7 +25,8 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'phone',
         'avatar',
-        'is_active'
+        'is_active',
+        'role_id'
     ];
 
     /**
@@ -65,5 +66,21 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function role() {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function moneyLogs() {
+        return $this->hasMany(User::class);
+    }
+
+    public function receipts() {
+        return $this->hasMany(Receipt::class);
+    }
+
+    public function payments() {
+        return $this->hasMany(Receipt::class);
     }
 }
