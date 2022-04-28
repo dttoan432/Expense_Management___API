@@ -44,7 +44,7 @@ class UpdateUserRequest extends FormRequest
             'name'                  => 'required|max:50',
             'email'                 => ['required','max:64','email',Rule::unique('users')->ignore($this->id, '_id')],
             'phone'                 => ['nullable','digits:10',Rule::unique('users')->ignore($this->id, '_id'),'regex:/(84|0[3|5|7|8|9])+([0-9]{8})\b/'],
-            'role_id'               => 'nullable|exists:users,_id',
+//            'role_id'               => 'nullable|exists:users,_id',
             'is_active'             => 'required|boolean',
         ];
     }
