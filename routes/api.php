@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,5 +33,9 @@ Route::group(['middleware' => 'api'], function ($router) {
             Route::delete('/{id}', [UserController::class, 'destroy']);
             Route::post('/{id}/change-status-active', [UserController::class, 'changeStatusActive']);
         });
+    });
+
+    Route::group(['prefix' => 'chat'], function () {
+        Route::post('/send-message', [ChatController::class, 'sendMessage']);
     });
 });
