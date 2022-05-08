@@ -14,7 +14,7 @@ trait ResponseTrait
      * @param int $code
      * @return \Illuminate\Http\JsonResponse
      */
-    public function responseSuccess($message = 'success', $data = [], $code = 0)
+    public function responseSuccess($data = [], $message = 'success', $code = 0)
     {
         return response()->json([
             'code'      => $code,
