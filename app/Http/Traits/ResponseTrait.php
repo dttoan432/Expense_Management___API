@@ -2,6 +2,8 @@
 
 namespace App\Http\Traits;
 
+use Illuminate\Http\JsonResponse;
+
 /**
  * Trait ResponseTrait
  * @package App\Traits
@@ -12,7 +14,7 @@ trait ResponseTrait
      * @param array $data
      * @param string $message
      * @param int $code
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function responseSuccess($data = [], $message = 'success', $code = 0)
     {
@@ -28,7 +30,7 @@ trait ResponseTrait
      * @param array $data
      * @param int $httpStatusCode
      * @param int $code
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function responseError($message = 'error', $data = [], $httpStatusCode = 500, $code = 500)
     {

@@ -26,12 +26,18 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/me', [AuthController::class, 'me']);
 
         Route::group(['prefix' => 'users'], function () {
-            Route::get('/', [UserController::class, 'index']);
-            Route::post('/', [UserController::class, 'store']);
-            Route::post('/{id}', [UserController::class, 'update']);
-            Route::delete('/{id}', [UserController::class, 'destroy']);
-            Route::post('/{id}/update-status-active', [UserController::class, 'updateStatusActive']);
-            Route::post('/{id}/update-password', [UserController::class, 'updatePassword']);
+            Route::get('/', [UserController::class, 'index'])
+                ->middleware('ensure.permission:get-users');
+            Route::post('/', [UserController::class, 'store'])
+                ->middleware('ensure.permission:create-user');
+            Route::post('/{id}', [UserController::class, 'update'])
+                ->middleware('ensure.permission:update-user');
+            Route::delete('/{id}', [UserController::class, 'destroy'])
+                ->middleware('ensure.permission:delete-user');
+            Route::post('/{id}/update-status-active', [UserController::class, 'updateStatusActive'])
+                ->middleware('ensure.permission:update-user-status');
+            Route::post('/{id}/update-password', [UserController::class, 'updatePassword'])
+                ->middleware('ensure.permission:update-user-password');
         });
     });
 });
