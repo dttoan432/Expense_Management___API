@@ -7,6 +7,7 @@ use App\Http\Requests\Users\UpdatePasswordUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
 use App\Http\Traits\HelperTrait;
 use App\Http\Traits\ResponseTrait;
+use App\Models\Role;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -21,14 +22,14 @@ class UserController extends Controller
     use HelperTrait;
 
     /**
-     * Display a listing of the resource.
+     * Lấy danh sách người dùng.
      *
      * @return JsonResponse
      */
     public function index(Request $request)
     {
         try {
-            $query = User::query();
+            $query = User::query()->with(['role']);
 
             if ($request->has('qr')) {
                 $query->where('name', 'like', '%' . $request->input('qr') . '%')
@@ -40,13 +41,11 @@ class UserController extends Controller
                 ->paginate(config('constants.per_page'));
 
             foreach ($users as $user) {
-                if (!empty($user->avatar)) {
-                    $user->avatar = $this->getUrlFileFormStorage($user->avatar);
-                }
+                if (!empty($user->avatar)) $user->avatar = $this->getUrlFileFormStorage($user->avatar);
             }
             return $this->responseSuccess($users);
         } catch (Exception $e) {
-            Log::error('ERROR - Không thể lấy danh sách người dùng', [
+            Log::error('ERROR - Lấy danh sách người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -56,7 +55,28 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Lấy danh sách tất cả vai trò.
+     *
+     * @return JsonResponse
+     */
+    public function getAllRoles()
+    {
+        try {
+            $roles = Role::where('name', '<>', 'Super Admin')->get();
+
+            return $this->responseSuccess($roles);
+        } catch (\Exception $e) {
+            Log::error('ERROR - Lấy danh sách tất cả vai trò thất bại.', [
+                'method' => __METHOD__,
+                'message' => $e->getMessage()
+            ]);
+
+            return $this->responseError();
+        }
+    }
+
+    /**
+     * Tạo mới người dùng.
      *
      * @param StoreUserRequest $request
      * @return JsonResponse
@@ -65,15 +85,13 @@ class UserController extends Controller
     {
         try {
             $user = new User();
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->password = Hash::make($request->input('password'));
-            $user->phone = $request->input('phone');
-            $user->is_active = $request->input('is_active');
-            $user->role_id = $request->input('role_id');
+            $user->name         = $request->input('name');
+            $user->email        = $request->input('email');
+            $user->phone        = $request->input('phone');
+            $user->is_active    = $request->input('is_active');
+            $user->role_id      = $request->input('role_id');
+            $user->password     = Hash::make($request->input('password'));
             if ($request->hasFile('avatar')) {
-                // Upload file lên google và lưu lại tên file
-//                $path = Storage::disk('google')->putFile('', $request->file('avatar'));
                 $path = Storage::disk('public')->putFile('/avatar', $request->file('avatar'));
                 $user->avatar = $path;
             }
@@ -81,7 +99,7 @@ class UserController extends Controller
 
             return $this->responseSuccess();
         } catch (Exception $e) {
-            Log::error('ERROR - Tạo mới người dùng thất bại', [
+            Log::error('ERROR - Tạo mới người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -91,21 +109,21 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Cập nhật thông tin người dùng.
      *
-     * @param Request $request
-     * @param  int  $id
+     * @param UpdateUserRequest $request
+     * @param int $id
      * @return JsonResponse
      */
     public function update(UpdateUserRequest $request, $id)
     {
         try {
             $user = User::findOrFail($id);
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->phone = $request->input('phone');
-            $user->is_active = $request->input('is_active');
-            $user->role_id = $request->input('role_id');
+            $user->name         = $request->input('name');
+            $user->email        = $request->input('email');
+            $user->phone        = $request->input('phone');
+            $user->is_active    = $request->input('is_active');
+            $user->role_id      = $request->input('role_id');
             if ($request->hasFile('avatar')) {
                 $path = Storage::disk('public')->putFile('/avatar', $request->file('avatar'));
                 $user->avatar = $path;
@@ -114,7 +132,7 @@ class UserController extends Controller
 
             return $this->responseSuccess();
         } catch (Exception $e) {
-            Log::error('ERROR - Cập nhật thông tin người dùng thất bại', [
+            Log::error('ERROR - Cập nhật thông tin người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -124,7 +142,7 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa người dùng.
      *
      * @param  int  $id
      * @return JsonResponse
@@ -137,7 +155,7 @@ class UserController extends Controller
 
             return $this->responseSuccess();
         } catch (Exception $e) {
-            Log::error('ERROR - Xóa người dùng thất bại', [
+            Log::error('ERROR - Xóa người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -147,6 +165,8 @@ class UserController extends Controller
     }
 
     /**
+     * Cập nhật trạng thái người dùng.
+     *
      * @param Request $request
      * @param $id
      * @return JsonResponse
@@ -160,7 +180,7 @@ class UserController extends Controller
 
             return $this->responseSuccess();
         } catch (Exception $e) {
-            Log::error('ERROR - Cập nhật trạng thái người dùng thất bại', [
+            Log::error('ERROR - Cập nhật trạng thái người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -170,6 +190,8 @@ class UserController extends Controller
     }
 
     /**
+     * Thay đổi mật khẩu người dùng
+     *
      * @param UpdatePasswordUserRequest $request
      * @param $id
      * @return JsonResponse
@@ -183,7 +205,7 @@ class UserController extends Controller
 
             return $this->responseSuccess();
         } catch (Exception $e) {
-            Log::error('ERROR - Thay đổi mật khẩu người dùng thất bại', [
+            Log::error('ERROR - Thay đổi mật khẩu người dùng thất bại.', [
                 'method'    => __METHOD__,
                 'message' => $e->getMessage()
             ]);

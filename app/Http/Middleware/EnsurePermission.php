@@ -22,19 +22,19 @@ class EnsurePermission
      *
      * @param Request $request
      * @param Closure $next
-     * @param $permission
+     * @param $permissions
      * @return JsonResponse
      */
-    public function handle(Request $request, Closure $next, $permission)
+    public function handle(Request $request, Closure $next, ... $permissions)
     {
         try {
             if (!empty(auth()->user()->role_id)) {
                 $role = Role::findOrFail(auth()->user()->role_id);
 
-                $isSuperAdmin = $this->hasPermission($role->permission_ids, 'super-admin');
+                $isSuperAdmin = $this->hasPermission($role->permission_ids, ['super-admin']);
                 if ($isSuperAdmin) return $next($request);
 
-                $hasPermission = $this->hasPermission($role->permission_ids, $permission);
+                $hasPermission = $this->hasPermission($role->permission_ids, $permissions);
                 if ($hasPermission) return $next($request);
             }
 
@@ -43,7 +43,7 @@ class EnsurePermission
                 403
             );
         } catch (Exception $e) {
-            Log::error('ERROR - Đã xảy ra lỗi khi xác thực quyền của người dùng.', [
+            Log::error('ERROR - Lỗi xử lý middleware xác thực quyền hạn người dùng.', [
                 'method' => __METHOD__,
                 'message' => $e->getMessage()
             ]);
@@ -54,17 +54,21 @@ class EnsurePermission
 
     /**
      * @param $permissions
-     * @param $permission
+     * @param $permissionCode
      * @return bool
      */
-    public function hasPermission($permissions, $permission)
+    public function hasPermission($permissions, $permissionCodes)
     {
+        $hasPermission = false;
         try {
-            $permission = Permission::where('name', $permission)->firstOrFail();
+            foreach ($permissionCodes as $permissionCode) {
+                $permission = Permission::where('code', $permissionCode)->first();
+                if (in_array($permission->_id, $permissions)) $hasPermission = true;
+            }
 
-            return in_array($permission->_id, $permissions);
+            return $hasPermission;
         } catch (\Exception $e) {
-            Log::error('ERROR - Đã xảy ra lỗi khi xác thực quyền của người dùng.', [
+            Log::error('ERROR - Xác thực quyền hạn của người dùng thất bại.', [
                 'method' => __METHOD__,
                 'message' => $e->getMessage()
             ]);

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use App\Models\User;
+use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,6 +14,7 @@ class UserTableSeeder extends Seeder
      * Run the database seeds.
      *
      * @return void
+     * @throws Exception
      */
     public function run()
     {
@@ -31,20 +33,5 @@ class UserTableSeeder extends Seeder
                 'role_id'   => $roleSuperAdmin
             ]
         );
-
-        for ($i = 1; $i <= 500; $i++) {
-            User::updateOrCreate(
-                [
-                    'email' => 'user' . $i . '@gmail.com'
-                ],
-                [
-                    'name'      => 'User' . $i,
-                    'password'  => Hash::make('admin432000'),
-                    'phone'     => '03' . random_int(11111111, 99999999),
-                    'avatar'    => null,
-                    'is_active' => true
-                ]
-            );
-        }
     }
 }

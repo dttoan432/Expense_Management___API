@@ -44,7 +44,7 @@ class StoreUserRequest extends FormRequest
             'phone'                 => ['nullable','digits:10','unique:users,phone','regex:/(84|0[3|5|7|8|9])+([0-9]{8})\b/'],
             'password'              => 'required|max:32|min:8',
             'password_confirmation' => 'required|same:password',
-//            'role_id'               => 'nullable|exists:roles,_id',
+            'role_id'               => 'nullable|exists:roles,_id',
             'is_active'             => 'required|boolean',
         ];
     }

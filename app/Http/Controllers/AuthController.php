@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ResponseTrait;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use http\Env\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
@@ -31,20 +34,19 @@ class AuthController extends Controller
     {
         $credentials = request(['email', 'password']);
 
-        $user = User::where('email', $credentials['email'])->first();
-        if (!$user->is_active) {
-            return $this->responseError(
-                'Tài khoản đã bị khóa',
-                ['account' => ['Tài khoản đã bị khóa']],
-                403, 403
-            );
-        }
-
         if (!$token = auth()->attempt($credentials)) {
             return $this->responseError(
                 'Thông tin tài khoản không chính xác',
                 ['account' => ['Thông tin tài khoản không chính xác']],
                 400, 400
+            );
+        }
+
+        if (!auth()->user()->is_active) {
+            return $this->responseError(
+                'Tài khoản đã bị khóa',
+                ['account' => ['Tài khoản đã bị khóa']],
+                403, 403
             );
         }
 
@@ -60,6 +62,19 @@ class AuthController extends Controller
     {
         $user = auth()->user();
         $user->access_token = $this->respondWithToken(auth()->refresh())->original['access_token'];
+
+        if ($user && $user->role_id) {
+            $permissionIds = Role::find($user->role_id)->permission_ids;
+            if (!empty($permissionIds)) {
+                $permissionCodes = Permission::whereIn('_id', $permissionIds)->get();
+                $permissions = collect($permissionCodes)->map(function ($permission) {
+                    return $permission->code;
+                });
+
+                $user->permissions = $permissions;
+            }
+        }
+
         return response()->json($user);
     }
 
@@ -88,7 +103,7 @@ class AuthController extends Controller
     /**
      * Get the token array structure.
      *
-     * @param  string $token
+     * @param string $token
      *
      * @return JsonResponse
      */

@@ -34,7 +34,6 @@ class PermissionGroupTableSeeder extends Seeder
             ],
             [
                 'name'          => $data['name'],
-                'code'          => $data['code'],
                 'description'   => $data['description']
             ]
         );

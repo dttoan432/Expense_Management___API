@@ -12,8 +12,8 @@ class Permission extends Model
     protected $table = 'permissions';
 
     protected $fillable = [
+        'code',
         'name',
-        'display_name',
         'description',
         'permission_group_code',
         'role_ids'
